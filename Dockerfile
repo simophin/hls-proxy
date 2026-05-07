@@ -1,5 +1,6 @@
 # --- build stage ---
-FROM rust:slim AS builder
+# Pin to bookworm so the compiled binary targets the same glibc as the runtime image
+FROM rust:slim-bookworm AS builder
 
 WORKDIR /app
 
@@ -16,9 +17,10 @@ RUN touch src/main.rs && cargo build --release
 # --- runtime stage ---
 FROM debian:bookworm-slim
 
-# ca-certificates is required for reqwest to validate upstream TLS certs
+# ca-certificates: TLS cert validation for upstream requests
+# libssl3: runtime OpenSSL library required by native-tls
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ca-certificates \
+    && apt-get install -y --no-install-recommends ca-certificates libssl3 \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=builder /app/target/release/hls-proxy /usr/local/bin/hls-proxy

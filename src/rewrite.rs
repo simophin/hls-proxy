@@ -1,4 +1,5 @@
 use url::Url;
+use urlencoding::encode;
 
 /// Rewrites all URLs in an m3u8 playlist body so that they point back through
 /// the proxy at `proxy_base` with the original resolved URL as the `url` query
@@ -52,29 +53,7 @@ fn proxied_url(raw: &str, base_url: &Url, proxy_base: &str) -> String {
         Ok(u) => u,
         Err(_) => return raw.to_string(),
     };
-    format!("{}/proxy?url={}", proxy_base, urlencoding::encode(resolved.as_str()))
-}
-
-// ------------------------------------------------------------------
-// urlencoding shim — keeps the dependency count low
-// ------------------------------------------------------------------
-mod urlencoding {
-    pub fn encode(s: &str) -> String {
-        let mut out = String::with_capacity(s.len());
-        for byte in s.bytes() {
-            match byte {
-                b'A'..=b'Z'
-                | b'a'..=b'z'
-                | b'0'..=b'9'
-                | b'-'
-                | b'_'
-                | b'.'
-                | b'~' => out.push(byte as char),
-                b => out.push_str(&format!("%{:02X}", b)),
-            }
-        }
-        out
-    }
+    format!("{}/proxy?url={}", proxy_base, encode(resolved.as_str()))
 }
 
 // ------------------------------------------------------------------
@@ -175,12 +154,12 @@ mod tests {
         assert!(out.trim() == line);
     }
 
-    // ---- urlencoding shim ----
+    // ---- urlencoding ----
 
     #[test]
-    fn url_encoding_round_trip() {
+    fn url_encoding_escapes_special_chars() {
         let s = "https://example.com/path?foo=bar&baz=qux";
-        let encoded = super::urlencoding::encode(s);
+        let encoded = encode(s);
         assert!(!encoded.contains('?'));
         assert!(!encoded.contains('&'));
         assert!(!encoded.contains('='));

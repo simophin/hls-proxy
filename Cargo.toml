@@ -6,8 +6,7 @@ edition = "2024"
 [dependencies]
 axum = { version = "0.8", features = ["http2"] }
 tokio = { version = "1", features = ["full"] }
-reqwest = { version = "0.13", default-features = false, features = ["stream", "http2", "rustls-no-provider"] }
-rustls = { version = "0.23", default-features = false, features = ["ring", "tls12"] }
+reqwest = { version = "0.13", default-features = false, features = ["stream", "http2", "rustls"] }
 clap = { version = "4", features = ["derive", "env"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }

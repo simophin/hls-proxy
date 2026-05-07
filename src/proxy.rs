@@ -55,6 +55,13 @@ pub async fn proxy_handler(
         .unwrap_or("")
         .to_string();
 
+    // Use the final URL after any redirects as the base for resolving relative
+    // paths in playlists — the redirect may have changed the path.
+    let final_url = upstream_resp.url().clone();
+    if final_url != upstream_url {
+        debug!(final_url = %final_url, "upstream redirected");
+    }
+
     if !status.is_success() {
         warn!("upstream returned {status}");
         return StatusCode::from_u16(status.as_u16())
@@ -62,8 +69,8 @@ pub async fn proxy_handler(
             .into_response();
     }
 
-    if is_playlist(&content_type, upstream_url.as_str()) {
-        handle_playlist(upstream_resp, upstream_url, &state.base_url, content_type).await
+    if is_playlist(&content_type, final_url.as_str()) {
+        handle_playlist(upstream_resp, final_url, &state.base_url, content_type).await
     } else {
         stream_bytes(upstream_resp, content_type).await
     }

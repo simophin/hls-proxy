@@ -4,21 +4,17 @@ mod rewrite;
 
 use std::sync::Arc;
 
-use axum::{Router, routing::get};
+use axum::{routing::get, Router};
 use clap::Parser;
 use reqwest::Client;
 use tracing::info;
-use tracing_subscriber::{EnvFilter, fmt};
+use tracing_subscriber::{fmt, EnvFilter};
 
 use config::Config;
 use proxy::AppState;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    rustls::crypto::ring::default_provider()
-        .install_default()
-        .expect("failed to install ring crypto provider");
-
     let cfg = Config::parse();
 
     fmt()
